@@ -40,7 +40,7 @@ def get_zone(location: Location) -> Zone:
     elif location.x < 3.5:
         if location.y > 0:
             return Zone.TOP_CENTRE
-        elif location.y > -2:
+        elif location.y > -1:
             return Zone.BOTTOM_CENTRE_UPPER
         else:
             return Zone.BOTTOM_CENTRE_LOWER
