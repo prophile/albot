@@ -1,9 +1,10 @@
 from sr.robot import StationCode, Claimant
 from albot.view import STATION_CODE_LOCATIONS, Location
-from albot.navmesh import get_zone, is_direct_routable
+from albot.navmesh import get_zone, is_direct_routable, get_next_hop, ZONE_CENTRES
 from typing import Mapping, Sequence, Optional, Set
 
 import math
+import random
 
 
 PREDECESSORS: Mapping[Claimant, Mapping[StationCode, Optional[Sequence[StationCode]]]] = {
@@ -52,49 +53,6 @@ PREDECESSORS: Mapping[Claimant, Mapping[StationCode, Optional[Sequence[StationCo
 }
 
 
-CAPTURE_SEQUENCES: Mapping[Claimant, Sequence[StationCode]] = {
-    Claimant.ZONE_0: [
-        StationCode.OX,
-        StationCode.TS,
-        StationCode.VB,
-        StationCode.BE,
-        StationCode.HA,
-        StationCode.SZ,
-        StationCode.PL,
-        StationCode.HV,
-        StationCode.PO,
-        StationCode.YT,
-        StationCode.FL,
-        StationCode.EY,
-        StationCode.PN,
-        StationCode.BN,
-        StationCode.TH,
-        StationCode.SF,
-        StationCode.BN,
-        StationCode.SW,
-    ],
-    Claimant.ZONE_1: [
-        StationCode.BN,
-        StationCode.SZ,
-        StationCode.HV,
-        StationCode.YL,
-        StationCode.PO,
-        StationCode.FL,
-        StationCode.EY,
-        StationCode.PN,
-        StationCode.SF,
-        StationCode.BE,
-        StationCode.HA,
-        StationCode.PL,
-        StationCode.VB,
-        StationCode.BG,
-        StationCode.OX,
-        StationCode.TH,
-        StationCode.TS,
-    ],
-}
-
-
 def is_capturable(zone: int, station: StationCode, captured: Set[StationCode]) -> bool:
     predecessors = PREDECESSORS[Claimant(zone)][station]
     if predecessors is None:
@@ -103,13 +61,39 @@ def is_capturable(zone: int, station: StationCode, captured: Set[StationCode]) -
         return any(x in captured for x in predecessors)
 
 
-def choose_next_target(zone: int, captured: Set[StationCode], disregard: Set[StationCode], from_location: Location, dropped: bool) -> StationCode:
-    for candidate in CAPTURE_SEQUENCES[Claimant(zone)]:
-        if candidate in captured:
-            continue
-        if candidate in disregard:
-            continue
-        if is_capturable(zone, candidate, captured):
-            return candidate
-    return CAPTURE_SEQUENCES[Claimant(zone)][1]
+def effective_distance(from_location: Location, to_location: Location, dropped: bool) -> float:
+    from_zone = get_zone(from_location)
+    next_hop, is_direct = get_next_hop(from_zone, to_location, dropped)
+    if is_direct:
+        return math.hypot(to_location.x - from_location.x, to_location.y - from_location.y)
+    intermediate = ZONE_CENTRES[next_hop]
+    intermediate_distance = math.hypot(intermediate.x - from_location.x, intermediate.y - from_location.y)
+    return intermediate_distance + effective_distance(intermediate, to_location, dropped)
 
+
+HIGH_VALUE_TARGETS = [
+    StationCode.HA,
+    StationCode.YT,
+    StationCode.FL,
+    StationCode.VB,
+    StationCode.SZ,
+]
+
+
+def choose_next_target(zone: int, captured: Set[StationCode], disregard: Set[StationCode], from_location: Location, dropped: bool) -> StationCode:
+    candidates = set()
+    for station in StationCode:
+        if station in captured:
+            continue
+        if station in disregard:
+            continue
+        if is_capturable(zone, station, captured):
+            candidates.add(station)
+    if len(candidates) == 1:
+        return next(iter(candidates))
+    if len(candidates) == 0:
+        return random.choice(list(StationCode))
+    return min(
+        candidates,
+        key=lambda x: effective_distance(from_location, STATION_CODE_LOCATIONS[x], dropped) * (0.5 if x in HIGH_VALUE_TARGETS else 1),
+    )

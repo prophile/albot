@@ -54,9 +54,9 @@ ZONE_CENTRES = {
     Zone.BOTTOM_RIGHT_LOWER: Location(x=2.8, y=-2.1),
     Zone.LEFT_TRANSITION: Location(x=-4.9, y=-0.45),
     Zone.RIGHT_TRANSITION: Location(x=4.9, y=-0.45),
-    Zone.TOP_LEFT: Location(x=-4.9, y=1.3),
-    Zone.TOP_RIGHT: Location(x=4.9, y=1.3),
-    Zone.TOP_CENTRE: Location(x=0, y=1.5),
+    Zone.TOP_LEFT: Location(x=-4.9, y=1.15),
+    Zone.TOP_RIGHT: Location(x=4.9, y=1.15),
+    Zone.TOP_CENTRE: Location(x=0, y=1.3),
 }
 
 
