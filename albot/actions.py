@@ -167,6 +167,6 @@ class MoveInitial(Go):
 @dataclasses.dataclass(frozen=True)
 class BackOff(Action):
     def perform(self, robot: Robot, state: State, view: View) -> State:
-        drive(robot, -0.5, 0.15 * random.random() + 0.3)
-        robot.sleep(0.4 + 0.6 * random.random())
+        drive(robot, -0.6, 0.15 * random.random() + 0.4)
+        robot.sleep(0.4)
         return state
