@@ -4,7 +4,9 @@ from typing import Set, Optional, Sequence
 
 from sr.robot import Robot, StationCode
 from albot.pid import PIDController
+from albot.view import Location
 from albot.navmesh import Zone
+from albot.kalman import KalmanFilter
 
 
 @dataclasses.dataclass(frozen=True)
@@ -17,6 +19,8 @@ class State:
     initial_phase: bool
     current_zone: Optional[Zone]
     zone_history: Sequence[Zone]
+    kalman: KalmanFilter
+    kalman_time: float
 
 
 def initial_state(robot: Robot) -> State:
@@ -34,4 +38,12 @@ def initial_state(robot: Robot) -> State:
         initial_phase=True,
         current_zone=None,
         zone_history=[],
+        kalman=KalmanFilter(
+            initial_position=(
+                Location(x=-7, y=0)
+                if robot.zone == 0
+                else Location(x=7, y=0)
+            ),
+        ),
+        kalman_time=robot.time(),
     )

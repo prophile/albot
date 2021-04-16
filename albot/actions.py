@@ -90,7 +90,6 @@ class Goto(Go):
     def heading(self, state: State, view: View) -> float:
         target = self.target()
         #print("Target is: ", target, self)
-        assert view.location is not None
         if state.current_zone is not None:
             zone_steering = get_zone_steering(state.current_zone, target, view.dropped)
         else:
@@ -98,7 +97,7 @@ class Goto(Go):
         if zone_steering is not None:
             return zone_steering
         else:
-            return math.atan2(target.x - view.location.x, target.y - view.location.y)
+            return math.atan2(target.x - state.kalman.location.x, target.y - state.kalman.location.y)
 
 
 @dataclasses.dataclass
@@ -154,14 +153,6 @@ class ClaimImmediate(Action):
         drive(robot, -0.5)
         robot.sleep(0.2)
         return state
-
-
-@dataclasses.dataclass(frozen=True)
-class MoveInitial(Go):
-    zone: int
-
-    def heading(self, state: State, view: View) -> float:
-        return math.pi
 
 
 @dataclasses.dataclass(frozen=True)
