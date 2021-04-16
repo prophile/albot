@@ -54,6 +54,16 @@ PREDECESSORS: Mapping[Claimant, Mapping[StationCode, Optional[Sequence[StationCo
 
 CAPTURE_SEQUENCES: Mapping[Claimant, Sequence[StationCode]] = {
     Claimant.ZONE_0: [
+        StationCode.PN,
+        StationCode.EY,
+        StationCode.FL,
+        StationCode.PO,
+        StationCode.SZ,
+        StationCode.BE,
+        StationCode.HA,
+        StationCode.YT,
+#
+
         StationCode.OX,
         StationCode.TS,
         StationCode.VB,

@@ -6,7 +6,7 @@ import dataclasses
 from albot.state import State
 from albot.view import View, Location, STATION_CODE_LOCATIONS
 from albot.utils import drive
-from albot.navmesh import get_zone_steering, get_zone, is_direct_routable
+from albot.navmesh import get_zone, is_direct_routable
 from sr.robot import Robot, StationCode
 
 
@@ -90,17 +90,9 @@ class Goto(Go):
     def heading(self, state: State, view: View) -> float:
         target = self.target()
         #print("Target is: ", target, self)
-        if state.current_zone is not None:
-            zone_steering = get_zone_steering(state.current_zone, target, view.dropped)
-        else:
-            zone_steering = None
-        if zone_steering is not None:
-            print(f"Target {target} ({self}) zonal routing from {state.current_zone} to {get_zone(target)} on heading {math.degrees(zone_steering):.0f}°")
-            return zone_steering
-        else:
-            heading = math.atan2(target.x - state.kalman.location.x, target.y - state.kalman.location.y)
-            print(f"Target {target} ({self}) direct routing on heading {math.degrees(heading) % 360:.0f}°")
-            return heading
+        heading = math.atan2(target.x - state.kalman.location.x, target.y - state.kalman.location.y)
+        print(f"Target {target} ({self}) direct routing on heading {math.degrees(heading) % 360:.0f}°")
+        return heading
 
 
 @dataclasses.dataclass
@@ -114,25 +106,6 @@ class GotoLocation(Goto):
 @dataclasses.dataclass
 class GotoStation(Goto):
     station: StationCode
-
-    """
-    def relative_bearing(self, state: State, view: View) -> float:
-        if (
-            state.current_zone is None or
-            is_direct_routable(
-                state.current_zone,
-                STATION_CODE_LOCATIONS[self.station],
-                dropped=view.dropped,
-            )
-        ):
-            return super().relative_bearing(state, view)
-
-        for target in view.targets:
-            # Use the directly measured relative bearings if available
-            if target.target_info.station_code == self.station:
-                return target.bearing
-        return super().relative_bearing(state, view)
-    """
 
     def target(self) -> Location:
         return STATION_CODE_LOCATIONS[self.station]
