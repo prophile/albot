@@ -95,9 +95,12 @@ class Goto(Go):
         else:
             zone_steering = None
         if zone_steering is not None:
+            print(f"Target {target} ({self}) zonal routing from {state.current_zone} to {get_zone(target)} on heading {math.degrees(zone_steering):.0f}°")
             return zone_steering
         else:
-            return math.atan2(target.x - state.kalman.location.x, target.y - state.kalman.location.y)
+            heading = math.atan2(target.x - state.kalman.location.x, target.y - state.kalman.location.y)
+            print(f"Target {target} ({self}) direct routing on heading {math.degrees(heading) % 360:.0f}°")
+            return heading
 
 
 @dataclasses.dataclass
@@ -112,6 +115,7 @@ class GotoLocation(Goto):
 class GotoStation(Goto):
     station: StationCode
 
+    """
     def relative_bearing(self, state: State, view: View) -> float:
         if (
             state.current_zone is None or
@@ -128,6 +132,7 @@ class GotoStation(Goto):
             if target.target_info.station_code == self.station:
                 return target.bearing
         return super().relative_bearing(state, view)
+    """
 
     def target(self) -> Location:
         return STATION_CODE_LOCATIONS[self.station]
