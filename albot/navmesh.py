@@ -1,7 +1,7 @@
 import enum
 import math
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from albot.view import Location
 
@@ -419,23 +419,7 @@ for table in (ROUTING_POST_DROP, ROUTING_PRE_DROP):
             raise AssertionError(f"Missing steering {src}>{next_hop}")
 
 
-def get_zone_steering(from_zone: Zone, to_loc: Location, dropped: bool) -> Optional[float]:
-    to_zone = get_zone(to_loc)
-
-    if from_zone == to_zone:
-        return None
-
-    routing_table = ROUTING_POST_DROP if dropped else ROUTING_PRE_DROP
-
-    next_hop = routing_table[from_zone, to_zone]
-    if next_hop == to_zone:
-        return None
-
-    print(f"Routing for {to_zone} via {next_hop} (from {from_zone})")
-    return STEERING_DIRECTIONS[from_zone, next_hop]
-
-
-def is_direct_routable(from_zone: Zone, to_loc: Location, dropped: bool) -> bool:
+def get_next_hop(from_zone: Zone, to_loc: Location, dropped: bool) -> Tuple[Zone, bool]:
     to_zone = get_zone(to_loc)
 
     if from_zone == to_zone:
@@ -444,4 +428,15 @@ def is_direct_routable(from_zone: Zone, to_loc: Location, dropped: bool) -> bool
     routing_table = ROUTING_POST_DROP if dropped else ROUTING_PRE_DROP
 
     next_hop = routing_table[from_zone, to_zone]
-    return next_hop == to_zone
+    return next_hop, next_hop == to_zone
+
+
+def get_zone_steering(from_zone: Zone, to_loc: Location, dropped: bool) -> Optional[float]:
+    next_hop, is_direct = get_next_hop(from_zone, to_loc, dropped)
+    if is_direct:
+        return None
+    return STEERING_DIRECTIONS[from_zone, next_hop]
+
+
+def is_direct_routable(from_zone: Zone, to_loc: Location, dropped: bool) -> bool:
+    return get_next_hop(from_zone, to_loc, dropped)[1]
