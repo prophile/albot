@@ -5,9 +5,10 @@ import dataclasses
 
 from albot.state import State
 from albot.view import View, Location, STATION_CODE_LOCATIONS
+from albot.planning import PREDECESSORS
 from albot.utils import drive
-from albot.navmesh import get_zone, is_direct_routable
-from sr.robot import Robot, StationCode
+from albot.navmesh import get_zone, is_direct_routable, OPTIMAL_CAPTURE_ANGLES
+from sr.robot import Robot, StationCode, Claimant
 
 
 class Action(abc.ABC):
@@ -108,7 +109,16 @@ class GotoStation(Goto):
     station: StationCode
 
     def target(self) -> Location:
-        return STATION_CODE_LOCATIONS[self.station]
+        location = STATION_CODE_LOCATIONS[self.station]
+        try:
+            optimal_capture_angle = OPTIMAL_CAPTURE_ANGLES[self.station]
+        except KeyError:
+            return location
+        else:
+            return Location(
+                x=location.x + math.sin(optimal_capture_angle) * 0.4,
+                y=location.y + math.cos(optimal_capture_angle) * 0.4,
+            )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -119,15 +129,30 @@ class ClaimImmediate(Action):
         drive(robot, 0)
         robot.radio.claim_territory()
         new_targets = robot.radio.sweep()
+        successful = False
         for target in new_targets:
             if target.target_info.station_code == self.station:
                 if target.target_info.owned_by == state.zone:
-                    state = dataclasses.replace(state, uncapturable=frozenset())
-                else:
-                    state = dataclasses.replace(state, uncapturable=state.uncapturable | {self.station})
+                    successful = True
                 break
+        if successful:
+            # We claimed this one, mark all downstreams as now capturable
+            new_uncapturable = set(state.uncapturable)
+            new_uncapturable.discard(self.station)
+            for successor, predecessors in PREDECESSORS[Claimant(robot.zone)].items():
+                if predecessors is None:
+                    continue
+                if self.station in predecessors:
+                    new_uncapturable.discard(successor)
+            state = dataclasses.replace(state, uncapturable=frozenset(new_uncapturable))
         else:
-            state = dataclasses.replace(state, uncapturable=state.uncapturable | {self.station})
+            # We failed to claim this one, assume that all predecessors became unowned
+            predecessors = PREDECESSORS[Claimant(robot.zone)][self.station]
+            if predecessors is None:
+                new_owned = state.captured
+            else:
+                new_owned = frozenset(state.captured - set(predecessors))
+            state = dataclasses.replace(state, uncapturable=state.uncapturable | {self.station}, captured=new_owned)
         drive(robot, -0.5)
         robot.sleep(0.2)
         return state
