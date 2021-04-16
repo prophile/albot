@@ -144,7 +144,9 @@ class ClaimImmediate(Action):
                     continue
                 if self.station in predecessors:
                     new_uncapturable.discard(successor)
-            state = dataclasses.replace(state, uncapturable=frozenset(new_uncapturable))
+            new_cap_count = dict(state.num_captures)
+            new_cap_count[self.station] += 1
+            state = dataclasses.replace(state, uncapturable=frozenset(new_uncapturable), num_captures=new_cap_count)
         else:
             # We failed to claim this one, assume that all predecessors became unowned
             predecessors = PREDECESSORS[Claimant(robot.zone)][self.station]

@@ -1,6 +1,6 @@
 import math
 import dataclasses
-from typing import Set, Optional, Sequence
+from typing import Set, Optional, Sequence, Mapping
 
 from sr.robot import Robot, StationCode
 from albot.pid import PIDController
@@ -21,6 +21,7 @@ class State:
     zone_history: Sequence[Zone]
     kalman: KalmanFilter
     kalman_time: float
+    num_captures: Mapping[StationCode, int]
 
 
 def initial_state(robot: Robot) -> State:
@@ -46,4 +47,8 @@ def initial_state(robot: Robot) -> State:
             ),
         ),
         kalman_time=robot.time(),
+        num_captures={
+            x: 0
+            for x in StationCode
+        },
     )

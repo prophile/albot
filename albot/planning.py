@@ -80,7 +80,14 @@ HIGH_VALUE_TARGETS = [
 ]
 
 
-def choose_next_target(zone: int, captured: Set[StationCode], disregard: Set[StationCode], from_location: Location, dropped: bool) -> StationCode:
+def choose_next_target(
+    zone: int,
+    captured: Set[StationCode],
+    disregard: Set[StationCode],
+    from_location: Location,
+    dropped: bool,
+    pseudo_distances: Mapping[StationCode, float],
+) -> StationCode:
     candidates = set()
     for station in StationCode:
         if station in captured:
@@ -95,5 +102,8 @@ def choose_next_target(zone: int, captured: Set[StationCode], disregard: Set[Sta
         return random.choice(list(StationCode))
     return min(
         candidates,
-        key=lambda x: effective_distance(from_location, STATION_CODE_LOCATIONS[x], dropped) * (0.5 if x in HIGH_VALUE_TARGETS else 1),
+        key=lambda x: (
+            effective_distance(from_location, STATION_CODE_LOCATIONS[x], dropped) * (0.5 if x in HIGH_VALUE_TARGETS else 1) +
+            pseudo_distances[x]
+        ),
     )

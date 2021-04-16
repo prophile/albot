@@ -49,7 +49,17 @@ def choose_action(robot: Robot, state: State, view: View) -> Tuple[Action, State
     ):
         target = state.current_target
     else:
-        target = choose_next_target(state.zone, state.captured, state.uncapturable, from_location=state.kalman.location, dropped=view.dropped)
+        target = choose_next_target(
+            state.zone,
+            state.captured,
+            state.uncapturable,
+            from_location=state.kalman.location,
+            dropped=view.dropped,
+            pseudo_distances={
+                x: 0.7 * y
+                for x, y in state.num_captures.items()
+            },
+        )
         state = dataclasses.replace(state, current_target=target)
 
     next_hop, route_direct = get_next_hop(get_zone(state.kalman.location), get_station_location(target), view.dropped)
