@@ -9,15 +9,11 @@ import math
 PREDECESSORS: Mapping[Claimant, Mapping[StationCode, Optional[Sequence[StationCode]]]] = {
     Claimant.ZONE_0: {
         StationCode.TH: [StationCode.PN],
-        #StationCode.PN: None,
-        #StationCode.BG: None,
-        StationCode.PN: [StationCode.BG],
-        StationCode.BG: [StationCode.VB],
-        StationCode.VB: [StationCode.OX],
-        #
+        StationCode.PN: None,
+        StationCode.BG: None,
         StationCode.OX: None,
         StationCode.EY: [StationCode.PN, StationCode.VB],
-        #StationCode.VB: [StationCode.OX, StationCode.BG],
+        StationCode.VB: [StationCode.OX, StationCode.BG],
         StationCode.PL: [StationCode.VB],
         StationCode.BE: [StationCode.VB],
         StationCode.HA: [StationCode.BE],
