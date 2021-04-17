@@ -45,10 +45,13 @@ class GoRelative(Action):
         heading_error = self.relative_bearing(state, view)
         heading_error = (math.pi + heading_error) % math.tau - math.pi
         #print(f"  RB is {math.degrees(heading_error)}°", end='')
+        turn_back = False
         if view.left_distance < STEERING_THRESHOLD_METRES:
             heading_error += RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (view.left_distance / STEERING_THRESHOLD_METRES))
+            turn_back = True
         if view.right_distance < STEERING_THRESHOLD_METRES:
             heading_error -= RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (view.right_distance / STEERING_THRESHOLD_METRES))
+            turn_back = True
         if -0.7 < heading_error < 0.7:
             #print("... moving ahead")
             # Add some pseudo heading error if the proximity sensors are going off
@@ -56,10 +59,10 @@ class GoRelative(Action):
             drive(robot, 0.8 - 0.2 * deflection * deflection, 0.4 * deflection)
         elif heading_error > 0:
             #print("... turning right")
-            drive(robot, 0.0, 0.25)
+            drive(robot, -0.2 if turn_back else 0.2, 0.25)
         elif heading_error < 0:
             #print("... turning left")
-            drive(robot, 0.0, -0.25)
+            drive(robot, -0.2 if turn_back else 0.2, -0.25)
         robot.sleep(1 / 50)
         return state
 
