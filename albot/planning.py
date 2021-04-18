@@ -77,7 +77,7 @@ HIGH_VALUE_TARGETS = [
     StationCode.FL,
     StationCode.VB,
     StationCode.SZ,
-    StationCode.PN,
+    StationCode.PL,
 ]
 
 
