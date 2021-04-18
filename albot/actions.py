@@ -46,12 +46,14 @@ class GoRelative(Action):
         heading_error = (math.pi + heading_error) % math.tau - math.pi
         print(f"  RB is {math.degrees(heading_error)}°", end='')
         # Add some pseudo heading error if the proximity sensors are going off
+        left_distance = view.left_distance
+        right_distance = view.right_distance
         turn_back = False
         if view.left_distance < STEERING_THRESHOLD_METRES:
-            heading_error += RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (view.left_distance / STEERING_THRESHOLD_METRES))
+            heading_error += RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (left_distance / STEERING_THRESHOLD_METRES))
             turn_back = True
         if view.right_distance < STEERING_THRESHOLD_METRES:
-            heading_error -= RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (view.right_distance / STEERING_THRESHOLD_METRES))
+            heading_error -= RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (right_distance / STEERING_THRESHOLD_METRES))
             turn_back = True
         if turn_back:
             print(f", steering {math.degrees(heading_error)}°", end='')
