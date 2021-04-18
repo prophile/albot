@@ -28,6 +28,7 @@ from albot.view import Location
 MOTOR_LINEAR_SPEED = 0.989
 MOTOR_LINEAR_SPEED_STDEV = 0.045
 LEVER_ARM = 0.2
+HEADING_ERROR_PER_SECOND = math.tau / 5
 
 def compass_stdev_by_heading(heading: float) -> float:
     heading_error_fraction = .025
@@ -55,6 +56,7 @@ class KalmanFilter:
         self.location_error += MOTOR_LINEAR_SPEED_STDEV * dt * (0.1 + abs(surge) / MOTOR_LINEAR_SPEED)
         self.heading = (self.heading + rotation * dt) % math.tau
         self.heading_error += (MOTOR_LINEAR_SPEED_STDEV / LEVER_ARM) * dt
+        self.heading_error += HEADING_ERROR_PER_SECOND * dt
 
     def update_heading(self, compass: float) -> None:
         err_θ = compass - self.heading
