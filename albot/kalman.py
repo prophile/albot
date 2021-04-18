@@ -29,7 +29,11 @@ MOTOR_LINEAR_SPEED = 0.989
 MOTOR_LINEAR_SPEED_STDEV = 0.045
 LEVER_ARM = 0.2
 
-COMPASS_STDEV = math.radians(5)
+def compass_stdev_by_heading(heading: float) -> float:
+    heading_error_fraction = .025
+    heading_error_minimum = heading * (1 - heading_error_fraction)
+    heading_error_maximum = heading * (1 + heading_error_fraction)
+    return (heading_error_maximum - heading_error_minimum) ** 2 / math.sqrt(12)
 
 
 class KalmanFilter:
@@ -37,7 +41,7 @@ class KalmanFilter:
         self.location = initial_position
         self.location_error = 0.1
         self.heading = initial_heading
-        self.heading_error = COMPASS_STDEV
+        self.heading_error = compass_stdev_by_heading(self.heading)
 
     def tick(self, dt: float, left_power: float, right_power: float) -> None:
         left_velocity = MOTOR_LINEAR_SPEED * left_power / 100
@@ -50,12 +54,12 @@ class KalmanFilter:
         )
         self.location_error += MOTOR_LINEAR_SPEED_STDEV * dt * (0.1 + abs(surge) / MOTOR_LINEAR_SPEED)
         self.heading = (self.heading + rotation * dt) % math.tau
-        self.heading_error += COMPASS_STDEV * dt
+        self.heading_error += compass_stdev_by_heading(self.heading) * dt
 
     def update_heading(self, compass: float) -> None:
         err_θ = compass - self.heading
         err_θ = (err_θ + math.pi) % math.tau - math.pi
-        kalman_gain = self.heading_error / (self.heading_error + abs(err_θ) + COMPASS_STDEV)
+        kalman_gain = self.heading_error / (self.heading_error + abs(err_θ) + compass_stdev_by_heading(self.heading))
         print(f"Heading error is {math.degrees(err_θ):.1f}°, kalman gain is {kalman_gain:.4f}")
         self.heading += kalman_gain * err_θ
         self.heading = self.heading % math.tau
