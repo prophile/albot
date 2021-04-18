@@ -43,7 +43,7 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
         left_power=robot.motors[0].m0.power,
         right_power=robot.motors[0].m1.power,
     )
-    state.kalman.update_heading(view.heading)
+    state.kalman.update_heading(view.compass)
     for target in view.targets:
         state.kalman.update_location(
             location=single_target_position(view.heading, target),

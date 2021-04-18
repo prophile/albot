@@ -40,6 +40,7 @@ STATION_CODE_LOCATIONS = {
 @dataclasses.dataclass(frozen=True)
 class View:
     heading: float
+    compass: float
     targets: Sequence[Target]
     proximity: bool
     left_distance: float
@@ -48,7 +49,7 @@ class View:
 
 
 def get_world_view(R: Robot) -> View:
-    heading = R.compass.get_heading()
+    compass = R.compass.get_heading()
     targets = R.radio.sweep()
     left_distance = R.ruggeduinos[0].analogue_read(0)
     right_distance = R.ruggeduinos[0].analogue_read(1)
@@ -58,7 +59,8 @@ def get_world_view(R: Robot) -> View:
         R.ruggeduinos[0].digital_read(2)  # Front bump switch
     )
     return View(
-        heading=heading,
+        heading=compass,
+        compass=compass,
         targets=list(targets),
         proximity=proximity,
         left_distance=left_distance,
