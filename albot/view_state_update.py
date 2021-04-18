@@ -51,6 +51,6 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
         )
     state = dataclasses.replace(state, kalman_time=time)
 
-    print(f"Position is {state.kalman.location.x:.3f}, {state.kalman.location.y:.3f} ±{state.kalman.error:.3f}m")
+    print(f"Position is {state.kalman.location.x:.3f}, {state.kalman.location.y:.3f} ±{state.kalman.location_error:.3f}m")
 
     return state

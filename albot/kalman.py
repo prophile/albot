@@ -33,7 +33,7 @@ LEVER_ARM = 0.2
 class KalmanFilter:
     def __init__(self, initial_position: Location) -> None:
         self.location = initial_position
-        self.error = 0.1
+        self.location_error = 0.1
 
     def tick(self, dt: float, heading: float, left_power: float, right_power: float) -> None:
         left_velocity = MOTOR_LINEAR_SPEED * left_power / 100
@@ -45,16 +45,16 @@ class KalmanFilter:
             x=self.location.x + surge * math.sin(heading) * dt,
             y=self.location.y + surge * math.cos(heading) * dt,
         )
-        self.error += MOTOR_LINEAR_SPEED_STDEV * dt * (0.1 + abs(surge) / MOTOR_LINEAR_SPEED)
+        self.location_error += MOTOR_LINEAR_SPEED_STDEV * dt * (0.1 + abs(surge) / MOTOR_LINEAR_SPEED)
 
     def update(self, location: Location, stdev: float) -> None:
         err_x = location.x - self.location.x
         err_y = location.y - self.location.y
         overall_error = math.hypot(err_x, err_y)
-        kalman_gain = self.error / (self.error + overall_error)
+        kalman_gain = self.location_error / (self.location_error + overall_error + stdev)
         #print(f"Kalman gain is {kalman_gain}")
         self.location = Location(
             x=self.location.x + kalman_gain * err_x,
             y=self.location.y + kalman_gain * err_y,
         )
-        self.error *= 1 - kalman_gain
+        self.location_error *= 1 - kalman_gain
