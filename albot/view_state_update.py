@@ -40,7 +40,6 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
     time = robot.time()
     state.kalman.tick(
         dt=time - state.kalman_time,
-        heading=view.heading,
         left_power=robot.motors[0].m0.power,
         right_power=robot.motors[0].m1.power,
     )

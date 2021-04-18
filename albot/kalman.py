@@ -39,14 +39,14 @@ class KalmanFilter:
         self.heading = initial_heading
         self.heading_error = COMPASS_STDEV
 
-    def tick(self, dt: float, heading: float, left_power: float, right_power: float) -> None:
+    def tick(self, dt: float, left_power: float, right_power: float) -> None:
         left_velocity = MOTOR_LINEAR_SPEED * left_power / 100
         right_velocity = MOTOR_LINEAR_SPEED * right_power / 100
         surge = (left_velocity + right_velocity) * 0.5
         rotation = (left_velocity - right_velocity) / LEVER_ARM
         self.location = Location(
-            x=self.location.x + surge * math.sin(heading) * dt,
-            y=self.location.y + surge * math.cos(heading) * dt,
+            x=self.location.x + surge * math.sin(self.heading) * dt,
+            y=self.location.y + surge * math.cos(self.heading) * dt,
         )
         self.location_error += MOTOR_LINEAR_SPEED_STDEV * dt * (0.1 + abs(surge) / MOTOR_LINEAR_SPEED)
         self.heading = (self.heading + rotation * dt) % math.tau
