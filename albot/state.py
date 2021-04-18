@@ -45,6 +45,11 @@ def initial_state(robot: Robot) -> State:
                 if robot.zone == 0
                 else Location(x=7, y=0)
             ),
+            initial_heading=(
+                math.radians(90)
+                if robot.zone == 0
+                else math.radians(270)
+            ),
         ),
         kalman_time=robot.time(),
         num_captures={
