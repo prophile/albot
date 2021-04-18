@@ -77,7 +77,7 @@ class Go(GoRelative):
     def relative_bearing(self, state: State, view: View) -> float:
         required_heading = self.heading(state, view)
         #print(f"Required heading is {math.degrees(required_heading) % 360}°, current is {math.degrees(view.heading) % 360}°")
-        return required_heading - view.heading
+        return required_heading - state.kalman.heading
 
 
 @dataclasses.dataclass(frozen=True)

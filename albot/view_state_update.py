@@ -1,3 +1,5 @@
+import math
+
 from sr.robot import Robot
 
 from albot.state import State
@@ -46,11 +48,12 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
     state.kalman.update_heading(view.compass)
     for target in view.targets:
         state.kalman.update_location(
-            location=single_target_position(view.heading, target),
+            location=single_target_position(state.kalman.heading, target),
             stdev=0.08,
         )
     state = dataclasses.replace(state, kalman_time=time)
 
     print(f"Position is {state.kalman.location.x:.3f}, {state.kalman.location.y:.3f} ±{state.kalman.location_error:.3f}m")
+    print(f"Heading is {math.degrees(state.kalman.heading):.0f}° ±{math.degrees(state.kalman.heading_error):.0f}°")
 
     return state
