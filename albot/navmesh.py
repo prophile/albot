@@ -16,6 +16,8 @@ OPTIMAL_CAPTURE_ANGLES = {
     StationCode.SZ: math.radians(180),
     StationCode.TH: math.radians(135),
     StationCode.SF: math.radians(225),
+    StationCode.EY: math.radians(0),
+    StationCode.PO: math.radians(0),
 }
 
 
