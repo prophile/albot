@@ -47,7 +47,7 @@ class KalmanFilter:
         )
         self.location_error += MOTOR_LINEAR_SPEED_STDEV * dt * (0.1 + abs(surge) / MOTOR_LINEAR_SPEED)
 
-    def update(self, location: Location, stdev: float) -> None:
+    def update_location(self, location: Location, stdev: float) -> None:
         err_x = location.x - self.location.x
         err_y = location.y - self.location.y
         overall_error = math.hypot(err_x, err_y)
