@@ -32,8 +32,10 @@ class MoveRandomly(Action):
         return state
 
 
-STEERING_THRESHOLD_METRES = 1.2
+STEERING_THRESHOLD_METRES = 1.8
+TOWER_RADIUS = 0.1
 RADIANS_ERROR_AT_FULL_DEFLECTION = math.radians(60)
+TOWER_ANGLE = math.radians(120)
 
 
 class GoRelative(Action):
@@ -48,6 +50,28 @@ class GoRelative(Action):
         # Add some pseudo heading error if the proximity sensors are going off
         left_distance = view.left_distance
         right_distance = view.right_distance
+
+        # Detect towers
+        for station in StationCode:
+            station_position = STATION_CODE_LOCATIONS[station]
+            distance = math.hypot(
+                station_position.x - state.kalman.location.x,
+                station_position.y - state.kalman.location.y,
+            )
+            distance = max(0, distance - TOWER_RADIUS)
+            if distance > STEERING_THRESHOLD_METRES:
+                continue
+            absolute_bearing = math.atan2(
+                station_position.x - state.kalman.location.x,
+                station_position.y - state.kalman.location.y,
+            ) % math.tau
+            relative_bearing = absolute_bearing - state.kalman.heading
+            #print(f"Proximity to {station.value}, range is {distance:.03f}m, relative {math.degrees(relative_bearing):.0f}°")
+            if 0 < relative_bearing < TOWER_ANGLE:
+                right_distance = min(right_distance, distance)
+            elif -TOWER_ANGLE < relative_bearing <= 0:
+                left_distance = min(left_distance, distance)
+
         turn_back = False
         if view.left_distance < STEERING_THRESHOLD_METRES:
             heading_error += RADIANS_ERROR_AT_FULL_DEFLECTION * (1 - (left_distance / STEERING_THRESHOLD_METRES))
