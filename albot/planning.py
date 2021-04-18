@@ -72,7 +72,6 @@ def effective_distance(from_location: Location, to_location: Location, dropped: 
 
 
 HIGH_VALUE_TARGETS = [
-    StationCode.HA,
     StationCode.YT,
     StationCode.FL,
     StationCode.VB,
