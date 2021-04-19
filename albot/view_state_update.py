@@ -10,7 +10,7 @@ import collections
 import dataclasses
 
 
-def update_state_from_view(robot: Robot, state: State, view: View) -> State:
+def update_state_from_view(robot: Robot, state: State, view: View) -> None:
     # Update captured
     new_captured = set(state.captured)
     for target in view.targets:
@@ -18,9 +18,9 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
             new_captured.add(target.target_info.station_code)
         else:
             new_captured.discard(target.target_info.station_code)
-    state = dataclasses.replace(state, captured=frozenset(new_captured))
+    state.captured = new_captured
 
-    state = dataclasses.replace(state, initial_phase=False)
+    state.initial_phase = False
 
     # Zone updating
     zone_list = list(state.zone_history)
@@ -28,16 +28,16 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
 
     if len(zone_list) > 4:
         zone_list = zone_list[-4:]
-    state = dataclasses.replace(state, zone_history=zone_list)
+    state.zone_history = zone_list
 
     zones = collections.Counter(zone_list)
     zones.update([zone_list[-1]])
 
     (element, num_instances), = zones.most_common(1)
     if num_instances > 1:
-        state = dataclasses.replace(state, current_zone=element)
+        state.current_zone = element
     else:
-        state = dataclasses.replace(state, current_zone=None)
+        state.current_zone = None
 
     time = robot.time()
     state.kalman.tick(
@@ -51,9 +51,7 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> State:
             location=single_target_position(state.kalman.heading, target),
             stdev=0.08,
         )
-    state = dataclasses.replace(state, kalman_time=time)
+    state.kalman_time = time
 
     print(f"Position is {state.kalman.location.x:.3f}, {state.kalman.location.y:.3f} ±{state.kalman.location_error:.3f}m")
     print(f"Heading is {math.degrees(state.kalman.heading):.0f}° ±{math.degrees(state.kalman.heading_error):.0f}°")
-
-    return state

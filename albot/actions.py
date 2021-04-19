@@ -13,23 +13,21 @@ from sr.robot import Robot, StationCode, Claimant
 
 class Action(abc.ABC):
     @abc.abstractmethod
-    def perform(self, robot: Robot, state: State, view: View) -> State:
+    def perform(self, robot: Robot, state: State, view: View) -> None:
         raise NotImplementedError
 
 
 @dataclasses.dataclass(frozen=True)
 class DoNothing(Action):
-    def perform(self, robot: Robot, state: State, view: View) -> State:
+    def perform(self, robot: Robot, state: State, view: View) -> None:
         drive(robot, 0)
-        return state
 
 
 @dataclasses.dataclass(frozen=True)
 class MoveRandomly(Action):
-    def perform(self, robot: Robot, state: State, view: View) -> State:
+    def perform(self, robot: Robot, state: State, view: View) -> None:
         drive(robot, random.random() - 0.25, 0.25 * (random.random() - 0.5))
         robot.sleep(0.2 + random.random() * 1.3)
-        return state
 
 
 STEERING_THRESHOLD_METRES = 1.8
@@ -43,7 +41,7 @@ class GoRelative(Action):
     def relative_bearing(self, state: State, view: View) -> float:
         raise NotImplementedError
 
-    def perform(self, robot: Robot, state: State, view: View) -> State:
+    def perform(self, robot: Robot, state: State, view: View) -> None:
         heading_error = self.relative_bearing(state, view)
         heading_error = (math.pi + heading_error) % math.tau - math.pi
         print(f"  RB is {math.degrees(heading_error)}°", end='')
@@ -92,7 +90,6 @@ class GoRelative(Action):
             print("... turning left")
             drive(robot, -0.2 if turn_back else 0.2, -0.25)
         robot.sleep(1 / 50)
-        return state
 
 
 class Go(GoRelative):
@@ -156,7 +153,7 @@ class GotoStation(Goto):
 class ClaimImmediate(Action):
     station: StationCode
 
-    def perform(self, robot: Robot, state: State, view: View) -> State:
+    def perform(self, robot: Robot, state: State, view: View) -> None:
         drive(robot, 0)
         robot.radio.claim_territory()
         new_targets = robot.radio.sweep()
@@ -177,7 +174,8 @@ class ClaimImmediate(Action):
                     new_uncapturable.discard(successor)
             new_cap_count = dict(state.num_captures)
             new_cap_count[self.station] += 1
-            state = dataclasses.replace(state, uncapturable=frozenset(new_uncapturable), num_captures=new_cap_count)
+            state.uncapturable = frozenset(new_uncapturable)
+            state.num_captures = new_cap_count
         else:
             # We failed to claim this one, assume that all predecessors became unowned
             predecessors = PREDECESSORS[Claimant(robot.zone)][self.station]
@@ -185,10 +183,10 @@ class ClaimImmediate(Action):
                 new_owned = state.captured
             else:
                 new_owned = frozenset(state.captured - set(predecessors))
-            state = dataclasses.replace(state, uncapturable=state.uncapturable | {self.station}, captured=new_owned)
+            state.uncapturable = state.uncapturable | {self.station}
+            state.captured = new_owned
         drive(robot, -0.5)
         robot.sleep(0.2)
-        return state
 
 
 @dataclasses.dataclass(frozen=True)
@@ -196,4 +194,3 @@ class BackOff(Action):
     def perform(self, robot: Robot, state: State, view: View) -> State:
         drive(robot, -0.6, 0.15 * random.random() + 0.4)
         robot.sleep(0.4)
-        return state

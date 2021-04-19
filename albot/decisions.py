@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from sr.robot import Robot, StationCode
 from albot.state import State
 from albot.view import View, get_station_location
@@ -14,7 +12,7 @@ import dataclasses
 BEES = []
 
 
-def choose_action(robot: Robot, state: State, view: View) -> Tuple[Action, State]:
+def choose_action(robot: Robot, state: State, view: View) -> Action:
     # Consider immediate claim targets, where we're already within the territory
     for target in view.targets:
         if 1.0 / target.signal_strength > 0.22:
@@ -32,14 +30,14 @@ def choose_action(robot: Robot, state: State, view: View) -> Tuple[Action, State
             print(f"> Considered {target.target_info.station_code} but skipping due to previous difficulties")
             continue
 
-        return ClaimImmediate(target.target_info.station_code), state
+        return ClaimImmediate(target.target_info.station_code)
 
     # Back off if we're in proximity
     if view.proximity:
         if random.random() < 0.95:
-            return BackOff(), state
+            return BackOff()
         else:
-            return MoveRandomly(), state
+            return MoveRandomly()
 
     if (
         state.current_target is not None and
@@ -60,11 +58,11 @@ def choose_action(robot: Robot, state: State, view: View) -> Tuple[Action, State
                 for x, y in state.num_captures.items()
             },
         )
-        state = dataclasses.replace(state, current_target=target)
+        state.current_target = target
 
     next_hop, route_direct = get_next_hop(get_zone(state.kalman.location), get_station_location(target), view.dropped)
     if route_direct:
-        return GotoStation(target), state
+        return GotoStation(target)
     else:
         print(f"Routing to {target} via {next_hop}")
-        return GotoLocation(ZONE_CENTRES[next_hop]), state
+        return GotoLocation(ZONE_CENTRES[next_hop])

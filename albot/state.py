@@ -9,7 +9,7 @@ from albot.navmesh import Zone
 from albot.kalman import KalmanFilter
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class State:
     zone: int
     heading_pid: PIDController

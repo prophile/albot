@@ -14,8 +14,8 @@ def run(robot: Robot) -> None:
     while True:
         view = get_world_view(robot)
         #print(view)
-        state = update_state_from_view(robot, state, view)
-        action, state = choose_action(robot, state, view)
+        update_state_from_view(robot, state, view)
+        action = choose_action(robot, state, view)
         action_desc = str(action)
         if action_desc != last_action:
             print("Action: ", action_desc)
@@ -23,5 +23,5 @@ def run(robot: Robot) -> None:
         if state.current_zone != last_zone:
             print("Zone: ", state.current_zone, state.kalman.location)
             last_zone = state.current_zone
-        state = action.perform(robot, state, view)
+        action.perform(robot, state, view)
         robot.sleep(0.01)
