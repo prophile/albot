@@ -30,10 +30,12 @@ class MoveRandomly(Action):
         robot.sleep(0.2 + random.random() * 1.3)
 
 
-STEERING_THRESHOLD_METRES = 1.8
+STEERING_THRESHOLD_METRES = 1.3
 TOWER_RADIUS = 0.1
 RADIANS_ERROR_AT_FULL_DEFLECTION = math.radians(60)
 TOWER_ANGLE = math.radians(120)
+IN_PLACE_TURN_RATE_PER_SECOND = math.radians(150)
+FULL_DEFLECTION_TURN_RATE_PER_SEOND = math.radians(150)
 
 
 class GoRelative(Action):
@@ -82,13 +84,13 @@ class GoRelative(Action):
         if -0.7 < heading_error < 0.7:
             print("... moving ahead")
             deflection = state.heading_pid.step(heading_error)
-            drive(robot, 0.8 - 0.2 * deflection * deflection, 0.4 * deflection)
+            drive(robot, 1, FULL_DEFLECTION_TURN_RATE_PER_SEOND * deflection)
         elif heading_error > 0:
             print("... turning right")
-            drive(robot, -0.2 if turn_back else 0.2, 0.25)
+            drive(robot, -0.2 if turn_back else 0.2, IN_PLACE_TURN_RATE_PER_SECOND)
         elif heading_error < 0:
             print("... turning left")
-            drive(robot, -0.2 if turn_back else 0.2, -0.25)
+            drive(robot, -0.2 if turn_back else 0.2, -IN_PLACE_TURN_RATE_PER_SECOND)
         robot.sleep(1 / 50)
 
 
@@ -192,5 +194,5 @@ class ClaimImmediate(Action):
 @dataclasses.dataclass(frozen=True)
 class BackOff(Action):
     def perform(self, robot: Robot, state: State, view: View) -> State:
-        drive(robot, -0.6, 0.15 * random.random() + 0.4)
+        drive(robot, -0.6, IN_PLACE_TURN_RATE_PER_SECOND * (0.15 * random.random() + 0.4))
         robot.sleep(0.4)
