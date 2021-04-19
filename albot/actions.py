@@ -93,7 +93,7 @@ class GoRelative(Action):
         elif heading_error < 0:
             print("... turning left")
             drive(robot, -0.2 if turn_back else 0.2, -IN_PLACE_TURN_RATE_PER_SECOND)
-        robot.sleep(1 / 50)
+        robot.sleep(1 / 100)
 
 
 class Go(GoRelative):
