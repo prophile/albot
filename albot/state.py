@@ -16,7 +16,6 @@ class State:
     captured: Set[StationCode]
     uncapturable: Set[StationCode]
     current_target: Optional[StationCode]
-    initial_phase: bool
     current_zone: Optional[Zone]
     zone_history: Sequence[Zone]
     kalman: KalmanFilter
@@ -36,7 +35,6 @@ def initial_state(robot: Robot) -> State:
         captured=frozenset(),
         uncapturable=frozenset(),
         current_target=None,
-        initial_phase=True,
         current_zone=None,
         zone_history=[],
         kalman=KalmanFilter(

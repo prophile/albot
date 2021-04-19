@@ -20,8 +20,6 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> None:
             new_captured.discard(target.target_info.station_code)
     state.captured = new_captured
 
-    state.initial_phase = False
-
     # Zone updating
     zone_list = list(state.zone_history)
     zone_list.append(get_zone(state.kalman.location))
