@@ -33,10 +33,11 @@ class MoveRandomly(Action):
 STEERING_THRESHOLD_METRES = 2.5
 TOWER_RADIUS = 0.1
 TOWER_ANGLE = math.radians(80)
-IN_PLACE_TURN_RATE_PER_SECOND = math.radians(150)
-FULL_DEFLECTION_TURN_RATE_PER_SEOND = math.radians(150)
+IN_PLACE_TURN_RATE_PER_SECOND = math.radians(75)
+FULL_DEFLECTION_TURN_RATE_PER_SECOND = math.radians(75)
 TOWER_CLEARANCE_DISTANCE = 0.25
 IN_PLACE_THRESHOLD = math.radians(45)
+FORWARD_POWER = 1
 
 
 class GoRelative(Action):
@@ -86,7 +87,7 @@ class GoRelative(Action):
         if -IN_PLACE_THRESHOLD < heading_error < IN_PLACE_THRESHOLD:
             print("... moving ahead")
             deflection = state.heading_pid.step(heading_error)
-            drive(robot, 1, FULL_DEFLECTION_TURN_RATE_PER_SEOND * deflection)
+            drive(robot, FORWARD_POWER, FULL_DEFLECTION_TURN_RATE_PER_SECOND * deflection)
         elif heading_error > 0:
             print("... turning right")
             drive(robot, -0.2 if turn_back else 0.2, IN_PLACE_TURN_RATE_PER_SECOND)

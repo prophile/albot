@@ -4,7 +4,7 @@ from sr.robot import Robot
 from albot.kalman import LEVER_ARM, MOTOR_LINEAR_SPEED
 
 def drive(robot: Robot, forward: float, turn_rate: float = 0.0) -> None:
-    differential = -0.5 * LEVER_ARM * turn_rate / MOTOR_LINEAR_SPEED
+    differential = -LEVER_ARM * turn_rate / MOTOR_LINEAR_SPEED
     # Solve common term so that forward is closest to optimal
     max_common = 1 - 2 * abs(differential)
     min_common = -1 + 2 * abs(differential)
