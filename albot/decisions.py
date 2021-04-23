@@ -1,5 +1,6 @@
 from sr.robot import Robot, StationCode
 from albot.state import State
+from albot.nerf import NERF_MODE
 from albot.view import View, get_station_location
 from albot.navmesh import get_next_hop, ZONE_CENTRES, get_zone
 from albot.actions import Action, DoNothing, ClaimImmediate, BackOff, GotoStation, MoveRandomly, GoHeading, GotoLocation
@@ -13,6 +14,10 @@ BEES = []
 
 
 def choose_action(robot: Robot, state: State, view: View) -> Action:
+    if NERF_MODE:
+        # Artificial stupidity
+        robot.sleep(0.2)
+
     # Consider immediate claim targets, where we're already within the territory
     for target in view.targets:
         if 1.0 / target.signal_strength > 0.22:

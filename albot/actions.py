@@ -8,6 +8,7 @@ from albot.view import View, Location, STATION_CODE_LOCATIONS
 from albot.planning import PREDECESSORS
 from albot.utils import drive
 from albot.navmesh import get_zone, is_direct_routable, OPTIMAL_CAPTURE_ANGLES
+from albot.nerf import NERF_MODE
 from sr.robot import Robot, StationCode, Claimant
 
 
@@ -39,6 +40,11 @@ TOWER_CLEARANCE_DISTANCE = 0.25
 IN_PLACE_THRESHOLD = math.radians(45)
 FORWARD_POWER = 1
 
+if NERF_MODE:
+    FORWARD_POWER = 0.6
+    IN_PLACE_TURN_RATE_PER_SECOND = math.radians(50)
+    STEERING_THRESHOLD_METRES = 1
+
 
 class GoRelative(Action):
     @abc.abstractmethod
@@ -54,25 +60,26 @@ class GoRelative(Action):
         right_distance = view.right_distance
 
         # Detect towers
-        for station in StationCode:
-            station_position = STATION_CODE_LOCATIONS[station]
-            distance = math.hypot(
-                station_position.x - state.kalman.location.x,
-                station_position.y - state.kalman.location.y,
-            )
-            distance = max(0, distance - TOWER_RADIUS)
-            if distance > STEERING_THRESHOLD_METRES:
-                continue
-            absolute_bearing = math.atan2(
-                station_position.x - state.kalman.location.x,
-                station_position.y - state.kalman.location.y,
-            ) % math.tau
-            relative_bearing = absolute_bearing - state.kalman.heading
-            #print(f"Proximity to {station.value}, range is {distance:.03f}m, relative {math.degrees(relative_bearing):.0f}°")
-            if 0 < relative_bearing < TOWER_ANGLE:
-                right_distance = min(right_distance, distance)
-            elif -TOWER_ANGLE < relative_bearing <= 0:
-                left_distance = min(left_distance, distance)
+        if not NERF_MODE:
+            for station in StationCode:
+                station_position = STATION_CODE_LOCATIONS[station]
+                distance = math.hypot(
+                    station_position.x - state.kalman.location.x,
+                    station_position.y - state.kalman.location.y,
+                )
+                distance = max(0, distance - TOWER_RADIUS)
+                if distance > STEERING_THRESHOLD_METRES:
+                    continue
+                absolute_bearing = math.atan2(
+                    station_position.x - state.kalman.location.x,
+                    station_position.y - state.kalman.location.y,
+                ) % math.tau
+                relative_bearing = absolute_bearing - state.kalman.heading
+                #print(f"Proximity to {station.value}, range is {distance:.03f}m, relative {math.degrees(relative_bearing):.0f}°")
+                if 0 < relative_bearing < TOWER_ANGLE:
+                    right_distance = min(right_distance, distance)
+                elif -TOWER_ANGLE < relative_bearing <= 0:
+                    left_distance = min(left_distance, distance)
 
         turn_back = False
 
@@ -192,6 +199,15 @@ class ClaimImmediate(Action):
             state.captured = new_owned
         drive(robot, -0.5)
         robot.sleep(0.2)
+
+        if NERF_MODE:
+            if random.random() < 0.5:
+                drive(robot, 0, math.radians(90) / 3)
+            else:
+                drive(robot, 0, -math.radians(90) / 3)
+            robot.sleep(3)
+            drive(robot, 0)
+            robot.sleep(1)
 
 
 @dataclasses.dataclass(frozen=True)

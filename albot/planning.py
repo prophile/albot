@@ -1,5 +1,6 @@
 from sr.robot import StationCode, Claimant
 from albot.view import STATION_CODE_LOCATIONS, Location
+from albot.nerf import NERF_MODE
 from albot.navmesh import get_zone, is_direct_routable, get_next_hop, ZONE_CENTRES
 from typing import Mapping, Sequence, Optional, Set
 
@@ -71,13 +72,30 @@ def effective_distance(from_location: Location, to_location: Location, dropped: 
     return intermediate_distance + effective_distance(intermediate, to_location, dropped)
 
 
-HIGH_VALUE_TARGETS = [
-    StationCode.YT,
-    StationCode.FL,
-    StationCode.VB,
-    StationCode.SZ,
-    StationCode.PL,
-]
+if NERF_MODE:
+    HIGH_VALUE_TARGETS = [
+        StationCode.OX,
+        StationCode.BG,
+        StationCode.HV,
+        StationCode.BN,
+    ]
+    BANNED_TARGETS = [
+        StationCode.HA,
+        StationCode.YT,
+        StationCode.FL,
+        StationCode.TH,
+        StationCode.SF,
+        StationCode.PL,
+    ]
+else:
+    HIGH_VALUE_TARGETS = [
+        StationCode.YT,
+        StationCode.FL,
+        StationCode.VB,
+        StationCode.SZ,
+        StationCode.PL,
+    ]
+    BANNED_TARGETS = []
 
 
 def choose_next_target(
@@ -93,6 +111,8 @@ def choose_next_target(
         if station in captured:
             continue
         if station in disregard:
+            continue
+        if station in BANNED_TARGETS:
             continue
         if is_capturable(zone, station, captured):
             candidates.add(station)

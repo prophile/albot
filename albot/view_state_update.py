@@ -5,6 +5,7 @@ from sr.robot import Robot
 from albot.state import State
 from albot.view import View, single_target_position
 from albot.navmesh import get_zone
+from albot.nerf import NERF_MODE
 
 import collections
 import dataclasses
@@ -17,7 +18,9 @@ def update_state_from_view(robot: Robot, state: State, view: View) -> None:
         if target.target_info.owned_by == state.zone:
             new_captured.add(target.target_info.station_code)
         else:
-            new_captured.discard(target.target_info.station_code)
+            if not NERF_MODE:
+                # In nerf mode we pretend we're unaware of zones taken away from us
+                new_captured.discard(target.target_info.station_code)
     state.captured = new_captured
 
     # Zone updating
